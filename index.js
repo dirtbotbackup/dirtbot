@@ -1,4 +1,5 @@
 // Dirt Bot (discord.js v14)
+
 const { Client, GatewayIntentBits, SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const jokes = require('./jokes');
 
