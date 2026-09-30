@@ -1,6 +1,4 @@
 // Dirt Bot (discord.js v14)
-
-require('dotenv').config(); // loads DISCORD_TOKEN from the .env file
 const { Client, GatewayIntentBits, SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const jokes = require('./jokes');
 
