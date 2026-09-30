@@ -1,77 +1,153 @@
-// Dirt Bot (discord.js v14)
-const { Client, GatewayIntentBits, SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const jokes = require('./jokes');
-
-const client = new Client({
-  intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent, // must also be enabled in the Developer Portal
-  ],
-});
-
-const commands = [
-  new SlashCommandBuilder()
-    .setName('coinflip')
-    .setDescription('Flip a coin')
-    .addStringOption((o) =>
-      o
-        .setName('call')
-        .setDescription('Call it before the flip (optional)')
-        .addChoices({ name: 'Heads', value: 'Heads' }, { name: 'Tails', value: 'Tails' })
-    ),
-  new SlashCommandBuilder()
-    .setName('jokeoftheday')
-    .setDescription('Get today\'s joke (the same for everyone, changes daily)'),
-].map((c) => c.toJSON());
-
-const handlers = {
-  async coinflip(i) {
-    const result = Math.random() < 0.5 ? 'Heads' : 'Tails';
-    const call = i.options.getString('call');
-    let msg = `🪙 The coin landed on **${result}**!`;
-    if (call) msg += call === result ? ' You called it! 🎉' : ' Better luck next time.';
-    await i.reply(msg);
-  },
-
-  async jokeoftheday(i) {
-    // Same joke all day (UTC), cycles through all 150 jokes
-    const day = Math.floor(Date.now() / 86400000);
-    const [setup, punchline] = jokes[day % jokes.length];
-    const embed = new EmbedBuilder()
-      .setTitle('😄 Joke of the Day')
-      .setDescription(`${setup}\n\n||${punchline}||`)
-      .setFooter({ text: 'Click the black bar to reveal the punchline' })
-      .setColor(0xf1c40f);
-    await i.reply({ embeds: [embed] });
-  },
-};
-
-client.once('ready', async () => {
-  await client.application.commands.set(commands);
-  console.log(`Logged in as ${client.user.tag}`);
-});
-
-client.on('interactionCreate', async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
-  try {
-    await handlers[interaction.commandName]?.(interaction);
-  } catch (err) {
-    console.error(err);
-    const msg = { content: 'Something went wrong.', ephemeral: true };
-    if (interaction.replied || interaction.deferred) await interaction.followUp(msg);
-    else await interaction.reply(msg);
-  }
-});
-
-// Say "bark" whenever someone types just "yes" (any capitalization)
-client.on('messageCreate', async (message) => {
-  if (message.author.bot) return;
-  if (message.content.trim().toLowerCase() === 'yes') {
-    try {
-      await message.channel.send('bark');
-    } catch (err) {
-      console.error(err);
-    }
-  }
-});
+// 150 jokes as [setup, punchline]
+module.exports = [
+  ["Why don't scientists trust atoms?", "Because they make up everything."],
+  ["What do you call a fake noodle?", "An impasta."],
+  ["Why did the scarecrow win an award?", "He was outstanding in his field."],
+  ["I'm reading a book about anti-gravity.", "It's impossible to put down."],
+  ["Why did the bicycle fall over?", "It was two tired."],
+  ["What do you call cheese that isn't yours?", "Nacho cheese."],
+  ["What did the ocean say to the beach?", "Nothing, it just waved."],
+  ["Why did the math book look sad?", "It had too many problems."],
+  ["What do you call a bear with no teeth?", "A gummy bear."],
+  ["Why don't eggs tell jokes?", "They'd crack each other up."],
+  ["What do you call a sleeping dinosaur?", "A dino-snore."],
+  ["Why did the tomato turn red?", "Because it saw the salad dressing."],
+  ["How does a penguin build its house?", "Igloos it together."],
+  ["What's brown and sticky?", "A stick."],
+  ["Why did the coffee file a police report?", "It got mugged."],
+  ["What do you call a fish wearing a bowtie?", "Sofishticated."],
+  ["Why did the golfer bring two pairs of pants?", "In case he got a hole in one."],
+  ["What did the zero say to the eight?", "Nice belt."],
+  ["Why are ghosts bad at lying?", "You can see right through them."],
+  ["What do you call a factory that makes okay products?", "A satisfactory."],
+  ["Why did the computer go to the doctor?", "It had a virus."],
+  ["What's a computer's favorite snack?", "Microchips."],
+  ["Why was the math teacher late to work?", "She took the wrong tangent."],
+  ["What do you call a pile of cats?", "A meowtain."],
+  ["Why did the cookie go to the doctor?", "It felt crumby."],
+  ["What did the left eye say to the right eye?", "Between us, something smells."],
+  ["Why don't skeletons fight each other?", "They don't have the guts."],
+  ["What do you call a dog that does magic tricks?", "A labracadabrador."],
+  ["How do you organize a space party?", "You planet."],
+  ["Why did the stadium get hot after the game?", "All the fans left."],
+  ["What do you call a boomerang that won't come back?", "A stick."],
+  ["Why can't a nose be 12 inches long?", "Because then it would be a foot."],
+  ["What did the janitor say when he jumped out of the closet?", "Supplies!"],
+  ["Why did the student eat his homework?", "The teacher said it was a piece of cake."],
+  ["What's orange and sounds like a parrot?", "A carrot."],
+  ["How do you make a tissue dance?", "Put a little boogie in it."],
+  ["Why did the invisible man turn down the job offer?", "He couldn't see himself doing it."],
+  ["What do you call a belt made of watches?", "A waist of time."],
+  ["Why do bees have sticky hair?", "They use honeycombs."],
+  ["What did one wall say to the other?", "I'll meet you at the corner."],
+  ["Why was the broom late?", "It over-swept."],
+  ["What do you call a lazy kangaroo?", "A pouch potato."],
+  ["Why did the banana go to the doctor?", "It wasn't peeling well."],
+  ["What kind of tree fits in your hand?", "A palm tree."],
+  ["Why did the picture go to jail?", "It was framed."],
+  ["What do you call a snowman in July?", "A puddle."],
+  ["Why did the chicken join a band?", "It had the drumsticks."],
+  ["What do you get when you cross a snowman and a vampire?", "Frostbite."],
+  ["Why do cows wear bells?", "Because their horns don't work."],
+  ["What's a pirate's favorite letter?", "You'd think it's R, but it's the C."],
+  ["Why did the orange stop?", "It ran out of juice."],
+  ["What do you call a parade of rabbits hopping backwards?", "A receding hare-line."],
+  ["Why did the scientist install a knocker on his door?", "He wanted to win the no-bell prize."],
+  ["What did the grape say when it got stepped on?", "Nothing, it just let out a little wine."],
+  ["Why do fish live in salt water?", "Because pepper makes them sneeze."],
+  ["What do you call a nervous javelin thrower?", "Shakespeare."],
+  ["I used to hate facial hair...", "But then it grew on me."],
+  ["What did the buffalo say to his son when he left for college?", "Bison."],
+  ["Why did the man put his money in the freezer?", "He wanted cold hard cash."],
+  ["What do you call an alligator in a vest?", "An investigator."],
+  ["Why did the smartphone need glasses?", "It lost all its contacts."],
+  ["What do you call a bee that can't make up its mind?", "A maybe."],
+  ["Why can't you trust stairs?", "They're always up to something."],
+  ["What did the big flower say to the little flower?", "Hey, bud."],
+  ["Why did the clock get sent to the principal's office?", "It kept tocking in class."],
+  ["What do you call a dinosaur with an extensive vocabulary?", "A thesaurus."],
+  ["Why did the pony get sent to his room?", "He wouldn't stop horsing around."],
+  ["What's the best thing about Switzerland?", "I don't know, but the flag is a big plus."],
+  ["Why don't oysters donate to charity?", "Because they're shellfish."],
+  ["What do you call a deer with no eyes?", "No idea."],
+  ["Why did the man run around his bed?", "He was trying to catch up on his sleep."],
+  ["What do you call a fake stone in Ireland?", "A sham rock."],
+  ["Why did the cow go to space?", "To see the moooon."],
+  ["What did the pirate say on his 80th birthday?", "Aye matey."],
+  ["Why did the tree go to the dentist?", "It needed a root canal."],
+  ["What do you call a cow with no legs?", "Ground beef."],
+  ["What's a ghost's favorite fruit?", "Boo-berries."],
+  ["Why was the belt arrested?", "For holding up a pair of pants."],
+  ["What has ears but can't hear?", "A cornfield."],
+  ["Why did the baker go to work early?", "He kneaded the dough."],
+  ["What do you call a sleeping bull?", "A bulldozer."],
+  ["Why did the music teacher need a ladder?", "To reach the high notes."],
+  ["What did the mother tomato say to the baby tomato that fell behind?", "Ketchup."],
+  ["Why did the frog take the bus to work?", "His car got toad."],
+  ["What do you call two monkeys that share an Amazon account?", "Prime mates."],
+  ["What do you call a snake that works for the government?", "A civil serpent."],
+  ["Why are elevator jokes so good?", "They work on many levels."],
+  ["What do you call a dentist in the army?", "A drill sergeant."],
+  ["Why did the barber win the race?", "He knew a shortcut."],
+  ["What do you call it when a cat wins a dog show?", "A cat-astrophe."],
+  ["Why don't programmers like nature?", "It has too many bugs."],
+  ["Why do programmers prefer dark mode?", "Because light attracts bugs."],
+  ["How many programmers does it take to change a light bulb?", "None, that's a hardware problem."],
+  ["Why did the developer go broke?", "He used up all his cache."],
+  ["What's a programmer's favorite hangout place?", "The Foo Bar."],
+  ["Why do Java developers wear glasses?", "Because they don't C sharp."],
+  ["There are 10 types of people in the world.", "Those who understand binary and those who don't."],
+  ["Why was the JavaScript developer sad?", "He didn't Node how to Express himself."],
+  ["A SQL query walks into a bar, walks up to two tables, and asks...", "Can I join you?"],
+  ["What's the object-oriented way to become wealthy?", "Inheritance."],
+  ["What do you call a cow during an earthquake?", "A milkshake."],
+  ["What do you call a fly without wings?", "A walk."],
+  ["Why do ducks make great detectives?", "They always quack the case."],
+  ["What do you call a fish with no eyes?", "A fsh."],
+  ["Why did the can crusher quit his job?", "It was soda pressing."],
+  ["What do you call an elephant that doesn't matter?", "An irrelephant."],
+  ["Why did the cat sit on the computer?", "To keep an eye on the mouse."],
+  ["What do you call a pony with a sore throat?", "A little hoarse."],
+  ["What do you call a dull pencil?", "Pointless."],
+  ["What did the sushi say to the bee?", "Wasabi!"],
+  ["Why was the equal sign so humble?", "It knew it wasn't less than or greater than anyone else."],
+  ["Why is six afraid of seven?", "Because seven eight nine."],
+  ["What do you call an angle you can trust?", "Acute one."],
+  ["Why did the obtuse angle go to the beach?", "Because it was over 90 degrees."],
+  ["What's a math teacher's favorite season?", "Sum-mer."],
+  ["Why was the fraction nervous?", "It was afraid of being reduced."],
+  ["What do mathematicians eat on Halloween?", "Pumpkin pi."],
+  ["Why do plants hate math?", "It gives them square roots."],
+  ["What did the calculator say to the student?", "You can count on me."],
+  ["Why did the two fours skip lunch?", "They already eight."],
+  ["What do you call a bagel that can fly?", "A plain bagel."],
+  ["Why did the pizza maker go broke?", "He couldn't make enough dough."],
+  ["Why did the taco go to therapy?", "It was falling apart."],
+  ["What do you call a sad cup of coffee?", "Depresso."],
+  ["What did the cheese say when it looked in the mirror?", "Halloumi."],
+  ["Why did the pasta go to school?", "To improve its penne-manship."],
+  ["What do you call a nosy pepper?", "Jalapeño business."],
+  ["Why did the potato cross the road?", "It saw a fork up ahead."],
+  ["What did the lettuce say to the celery?", "Stop stalking me."],
+  ["What do you call cheese that's sad?", "Blue cheese."],
+  ["Why did the moon skip dinner?", "It was full."],
+  ["How does the moon cut his hair?", "Eclipse it."],
+  ["Why didn't the sun go to college?", "It already had a million degrees."],
+  ["What did the cloud wear under his raincoat?", "Thunderwear."],
+  ["What did one volcano say to the other?", "I lava you."],
+  ["Why don't mountains get cold?", "They wear snow caps."],
+  ["Why did the river never get lost?", "It always followed the current."],
+  ["How do trees access the internet?", "They log in."],
+  ["What did the tree say to autumn?", "Leaf me alone."],
+  ["Why are trees so suspicious?", "They seem a bit shady."],
+  ["What do you call a knight who's afraid to fight?", "Sir Render."],
+  ["Why did the king go to the dentist?", "To get his teeth crowned."],
+  ["What did the dragon say when he saw a knight in armor?", "Oh no, canned food again."],
+  ["What do ninjas drink?", "Kara-tea."],
+  ["Why did the astronaut break up with her boyfriend?", "She needed space."],
+  ["What did the alien say to the garden?", "Take me to your weeder."],
+  ["Why did the robot go on vacation?", "To recharge its batteries."],
+  ["Why was the robot so tired?", "It had a hard drive."],
+  ["Why did the teddy bear say no to dessert?", "She was already stuffed."],
+  ["What did the big chimney say to the little chimney?", "You're too young to smoke."],
+];
