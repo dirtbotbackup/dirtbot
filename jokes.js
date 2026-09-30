@@ -1,11 +1,4 @@
 // Dirt Bot (discord.js v14)
-// Setup:
-//   npm init -y
-//   npm install discord.js
-//   set env var DISCORD_TOKEN, then: node index.js
-// Keep jokes.js in the same folder as this file.
-
-require('dotenv').config(); // loads DISCORD_TOKEN from the .env file
 const { Client, GatewayIntentBits, SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const jokes = require('./jokes');
 
