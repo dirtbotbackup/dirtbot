@@ -78,4 +78,13 @@ client.on('messageCreate', async (message) => {
   }
 });
 
+// Tiny web server so free "web service" hosts (like Render) have something to ping
+const http = require('http');
+http
+  .createServer((req, res) => {
+    res.writeHead(200);
+    res.end('Dirt Bot is running');
+  })
+  .listen(process.env.PORT || 3000);
+
 client.login(process.env.DISCORD_TOKEN);
