@@ -150,4 +150,5 @@ module.exports = [
   ["Why was the robot so tired?", "It had a hard drive."],
   ["Why did the teddy bear say no to dessert?", "She was already stuffed."],
   ["What did the big chimney say to the little chimney?", "You're too young to smoke."],
+  ["What do you call a popular seal?", "A sealebrity."],
 ];
